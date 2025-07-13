@@ -602,3 +602,4 @@ async def bilgi(ctx):
 # pip install aiohttp
 import os
 bot.run(os.getenv('BOT_TOKEN'))
+# Force Railway sync - 2025
