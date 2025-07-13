@@ -601,4 +601,4 @@ async def bilgi(ctx):
 # pip install psutil
 # pip install aiohttp
 import os
-bot.run(os.getenv('MTM5MzY1NzA1MDc4OTE4Nzc3NA.GM6QnF.y8oj-cTukZbDbV395lZbBqMXjqASqXth-1C30E'))
+bot.run(os.getenv('BOT_TOKEN'))
