@@ -2,19 +2,16 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from discord.ui import View, Button
-from dotenv import load_dotenv
 import os
 from datetime import datetime
 
-# .env'den token çek
-load_dotenv()
-TOKEN = os.getenv("BOT_TOKEN")
+# 1) İstersen yukarıda direkt token tanımla
+TOKEN = "BURAYA_KENDİ_BOT_TOKENİNİ_YAZ"  # Kodu paylaşırken burada gerçek tokenını yazma!
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# BOT BAŞLANGIÇ ZAMANI (uptime için)
 @bot.event
 async def on_ready():
     if not hasattr(bot, "launch_time"):
@@ -26,7 +23,7 @@ async def on_ready():
     except Exception as e:
         print(f"❌ Slash sync hatası: {e}")
 
-# --- 1) MODERN, ETKİLEŞİMLİ DUYURU KOMUTU ---
+# --- DUYURU KOMUTU ---
 @bot.tree.command(name="duyuru", description="Ultra modern ve etkileşimli duyuru gönder")
 @app_commands.describe(
     kanal="Duyuru gönderilecek kanal",
@@ -73,7 +70,6 @@ async def duyuru(
         icon_url=bot.user.avatar.url if bot.user.avatar else None
     )
 
-    # --- Okudum Butonu: Etkileşimli View ---
     class OkudumView(View):
         def __init__(self):
             super().__init__(timeout=None)
@@ -88,7 +84,6 @@ async def duyuru(
                 return
             self.okuyanlar.add(user.id)
             await interaction_buton.response.send_message("Duyuru okundu olarak işaretlendi! 🙌", ephemeral=True)
-            # Okuyanlar listesini güncelle
             liste = ", ".join(f"<@{k}>" for k in self.okuyanlar)
             embed_new = self.msg_ref.embeds[0].copy()
             embed_new.clear_fields()
@@ -98,10 +93,10 @@ async def duyuru(
 
     view = OkudumView()
     msg = await kanal.send(embed=embed, view=view)
-    view.msg_ref = msg  # Mesaj referansı view içine aktarılır
+    view.msg_ref = msg
     await interaction.response.send_message(f"✅ Duyuru {kanal.mention} kanalına gönderildi!", ephemeral=True)
 
-# --- 2) PING KOMUTU (Görsel de dahil, sade) ---
+# --- PING KOMUTU ---
 @bot.tree.command(name="ping", description="Botun pingini gösterir")
 async def ping(interaction: discord.Interaction):
     latency = round(bot.latency * 1000)
@@ -113,7 +108,7 @@ async def ping(interaction: discord.Interaction):
     )
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
-# --- 3) SİSTEM BİLGİSİ KOMUTU ---
+# --- SİSTEM BİLGİSİ KOMUTU ---
 @bot.tree.command(name="sistem-bilgi", description="Botun çalıştığı ortamın sistem raporu")
 async def sistem_bilgi(interaction: discord.Interaction):
     await interaction.response.send_message("🔄 Sistem bilgisi alınıyor...", ephemeral=True)
@@ -143,18 +138,18 @@ async def sistem_bilgi(interaction: discord.Interaction):
         embed.add_field(name="Kullanıcı", value=f"`{users}`", inline=True)
         embed.add_field(name="Ping", value=f"`{ping}ms`", inline=True)
         embed.add_field(
-            name="CPU Kullanımı", 
-            value=f"`%{cpu_percent}`", 
+            name="CPU Kullanımı",
+            value=f"`%{cpu_percent}`",
             inline=True
         )
         embed.add_field(
-            name="RAM Kullanımı", 
-            value=f"`{memory.percent}%` ({memory.used//(1024**2)}MB / {memory.total//(1024**2)}MB)", 
+            name="RAM Kullanımı",
+            value=f"`{memory.percent}%` ({memory.used//(1024**2)}MB / {memory.total//(1024**2)}MB)",
             inline=True
         )
         embed.add_field(
-            name="Disk Kullanımı", 
-            value=f"`{disk.percent}%` ({disk.used//(1024**3)}GB / {disk.total//(1024**3)}GB)", 
+            name="Disk Kullanımı",
+            value=f"`{disk.percent}%` ({disk.used//(1024**3)}GB / {disk.total//(1024**3)}GB)",
             inline=True
         )
         embed.set_footer(
@@ -170,8 +165,25 @@ async def sistem_bilgi(interaction: discord.Interaction):
         )
         await interaction.edit_original_response(content=None, embed=embed)
 
+# --- BOT BAŞLATMA ve TOKEN KONTROLÜ ---
 if __name__ == "__main__":
-    if not TOKEN or len(TOKEN) < 50:
+    # Önce environment variable kontrolü
+    token = os.getenv('BOT_TOKEN')
+    # Eğer environment variable yoksa, yukarıdaki TOKEN değişkenini kullan
+    if (token is None) or (len(token) < 10):  # 10’dan kısa ise yok say
+        token = TOKEN
+    # Son bir kez daha kontrol et
+    if not token or len(token) < 50:
         print("❌ BOT_TOKEN eksik veya hatalı!")
+        print("💡 Railway'de BOT_TOKEN variable'ını eklediğinizden emin olun")
+        print("🔧 Token formatı: MTM5MzY1NzA1...")
         exit(1)
-    bot.run(TOKEN)
+    try:
+        print("🚀 Ultra Bot başlatılıyor...")
+        print("🔥 Tüm sistemler hazır!")
+        bot.run(token)
+    except discord.LoginFailure:
+        print("❌ Bot token'ı geçersiz!")
+        print("💡 Discord Developer Portal'dan yeni token alın")
+    except Exception as e:
+        print(f"❌ Bot başlatılamadı: {e}")
